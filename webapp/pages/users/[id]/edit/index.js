@@ -7,7 +7,7 @@ import { useRouter } from "next/router"
 import Link from 'next/link'
 import { useForm } from "react-hook-form"
 import { yupResolver } from "@hookform/resolvers/yup"
-import * as Yup from "yup"
+import userRules from '@/validate/userRules';
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -15,17 +15,9 @@ export default function Index() {
     const router = useRouter()
     const [user, setUser] = useState([])
 
-    const validationSchema = Yup.object().shape({
-        first_name: Yup.string().required("First name is required"),
-        last_name: Yup.string().required("Last name is required"),
-        email: Yup.string().required("Email is required").email("Email is invalid"),
-    });
-
-    const formOptions = { resolver: yupResolver(validationSchema) };
+    const formOptions = { resolver: yupResolver(userRules) };
     const { register, handleSubmit, setValue, formState } = useForm(formOptions);
     const { errors, isValid, isSubmitting } = formState
-
-    console.log(formState);
 
     const userStatus = [
         {
