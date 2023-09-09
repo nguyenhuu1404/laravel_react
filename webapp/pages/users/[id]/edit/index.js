@@ -5,17 +5,27 @@ import { editUserApi, getUserApi } from '@/services/API.services'
 import { toast } from 'react-toastify';
 import { useRouter } from "next/router"
 import Link from 'next/link'
+import { useForm } from "react-hook-form"
+import { yupResolver } from "@hookform/resolvers/yup"
+import * as Yup from "yup"
 
 const inter = Inter({ subsets: ['latin'] })
 
 export default function Index() {
     const router = useRouter()
     const [user, setUser] = useState([])
-    const [processing, setProcessing] = useState(false);
-    const [email, setEmail] = useState(user.email || "")
-    const [first_name, setFirstName] = useState(user.first_name || "")
-    const [status, setStatus] = useState(user.status || "")
-    const [last_name, setLastName] = useState(user.last_name || "")
+
+    const validationSchema = Yup.object().shape({
+        first_name: Yup.string().required("First name is required"),
+        last_name: Yup.string().required("Last name is required"),
+        email: Yup.string().required("Email is required").email("Email is invalid"),
+    });
+
+    const formOptions = { resolver: yupResolver(validationSchema) };
+    const { register, handleSubmit, setValue, formState } = useForm(formOptions);
+    const { errors, isValid, isSubmitting } = formState
+
+    console.log(formState);
 
     const userStatus = [
         {
@@ -41,10 +51,10 @@ export default function Index() {
 
     useEffect(() => {
         if (user) {
-            setEmail(user.email)
-            setFirstName(user.first_name)
-            setLastName(user.last_name)
-            setStatus(user.status)
+            setValue('email', user.email)
+            setValue('first_name', user.first_name)
+            setValue('last_name', user.last_name)
+            setValue('status', user.status)
         }
       }, [user])
 
@@ -57,10 +67,11 @@ export default function Index() {
         }
     }
 
-    const handleUpdateUser = async (event) => {
-        event.preventDefault();
-        let data = {email, first_name, last_name, status}
+    const handleUpdateUser = async (data) => {
         try {
+            setTimeout(() => {
+                console.log("Delayed for 1 second.");
+              }, 10000)
             const res = await editUserApi(user.id, data)
             if (res.status) {
                 toast.success(res.message)
@@ -82,40 +93,40 @@ export default function Index() {
         <main className="container">
             <h2>Update user</h2>
             <div className="create-user">
-                <form onSubmit={handleUpdateUser} className="row g-3">
+                <form onSubmit={handleSubmit(handleUpdateUser)} className="row g-3">
                     <div className="col-md-6">
                         <label className="form-label">First Name</label>
                         <input
+                            {...register("first_name")}
                             type="text"
                             className="form-control"
                             placeholder="First name"
-                            value={first_name}
-                            onChange={event => setFirstName(event.target.value)}
                         />
+                        {errors.first_name && <div className="alert alert-danger ml-2 mt-2">{errors.first_name?.message}</div>}
                     </div>
                     <div className="col-6">
                         <label className="form-label">Last Name</label>
-                        <input 
+                        <input
+                            {...register("last_name")}
                             type="text"
                             className="form-control"
                             placeholder="Last name"
-                            value={last_name}
-                            onChange={event => setLastName(event.target.value)}
                         />
+                        {errors.last_name && <div className="alert alert-danger ml-2 mt-2">{errors.last_name?.message}</div>}
                     </div>
                     <div className="col-md-6">
                         <label className="form-label">Email</label>
-                        <input 
+                        <input
+                            {...register("email")}
                             type="email" 
                             className="form-control"
-                            value={email}
                             placeholder="Email"
-                            onChange={event => setEmail(event.target.value)}
                         />
+                        {errors.email && <div className="alert alert-danger ml-2 mt-2">{errors.email?.message}</div>}
                     </div>
                     <div className="col-md-6">
                         <label className="form-label">Status</label>
-                        <select onChange={event => setStatus(event.target.value)}
+                        <select {...register("status")}
                             class="form-select">
                             {
                                 userStatus.map((item, key) => {
@@ -131,7 +142,7 @@ export default function Index() {
                         <Link href="/users">
                             <button className="btn btn-secondary" variant="secondary">Back</button>
                         </Link>
-                        <button className="btn btn-primary ms-2" type="submit" variant="primary">Save</button>
+                        <button disabled={!isValid || isSubmitting} className="btn btn-primary ms-2" type="submit" variant="primary">Save</button>
                     </div>
                 </form>
             </div>

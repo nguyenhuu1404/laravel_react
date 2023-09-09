@@ -2,21 +2,28 @@ import Head from 'next/head'
 import { Inter } from 'next/font/google'
 import { useEffect, useState } from "react"
 import { createUserApi } from '@/services/API.services'
-import { toast } from 'react-toastify';
+import { toast } from 'react-toastify'
 import { useRouter } from "next/router"
+import { useForm } from "react-hook-form"
+import { yupResolver } from "@hookform/resolvers/yup"
+import * as Yup from "yup"
 
 const inter = Inter({ subsets: ['latin'] })
 
 export default function Index() {
     const router = useRouter()
-    const [processing, setProcessing] = useState(false);
-    const [email, setEmail] = useState("")
-    const [first_name, setFirstName] = useState("")
-    const [last_name, setLastName] = useState("")
 
-    const handleCreateUser = async (event) => {
-        event.preventDefault();
-        let data = {email, first_name, last_name}
+    const validationSchema = Yup.object().shape({
+        first_name: Yup.string().required("First name is required"),
+        last_name: Yup.string().required("Last name is required"),
+        email: Yup.string().required("Email is required").email("Email is invalid"),
+    });
+
+    const formOptions = { resolver: yupResolver(validationSchema) };
+    const { register, handleSubmit, reset, formState } = useForm(formOptions);
+    const { errors, isSubmitting } = formState
+
+    const handleCreateUser = async (data) => {
         try {
             const res = await createUserApi(data)
             if (res.status) {
@@ -26,13 +33,6 @@ export default function Index() {
         } catch (e) {
             toast.error(e.message)
         }
-    }
-
-    const restForm = (event) => {
-        event.preventDefault();
-        setFirstName("")
-        setLastName("")
-        setEmail("")
     }
 
   return (
@@ -46,41 +46,41 @@ export default function Index() {
         <main className="container">
             <h2>Create User</h2>
             <div className="create-user">
-                <form onSubmit={handleCreateUser} className="row g-3">
+                <form onSubmit={handleSubmit(handleCreateUser)} className="row g-3">
                     <div className="col-md-6">
                         <label className="form-label">First Name</label>
                         <input
+                            {...register("first_name")}
                             type="text"
                             className="form-control"
                             placeholder="First name"
-                            value={first_name}
-                            onChange={event => setFirstName(event.target.value)}
                         />
+                        {errors.first_name && <div className="alert alert-danger ml-2 mt-2">{errors.first_name?.message}</div>}
                     </div>
                     <div className="col-6">
                         <label className="form-label">Last Name</label>
-                        <input 
+                        <input
+                            {...register("last_name")}  
                             type="text"
                             className="form-control"
                             placeholder="Last name"
-                            value={last_name}
-                            onChange={event => setLastName(event.target.value)}
                         />
+                        {errors.last_name && <div className="alert alert-danger ml-2 mt-2">{errors.last_name?.message}</div>}
                     </div>
                     <div className="col-md-6">
                         <label className="form-label">Email</label>
                         <input 
+                            {...register("email")}
                             type="email" 
                             className="form-control"
-                            value={email}
                             placeholder="Email"
-                            onChange={event => setEmail(event.target.value)}
                         />
+                        {errors.email && <div className="alert alert-danger ml-2 mt-2">{errors.email?.message}</div>}
                     </div>
 
                     <div>
-                        <button onClick={restForm} className="btn btn-secondary" variant="secondary">Reset</button>
-                        <button className="btn btn-primary ms-2" type="submit" variant="primary">Save</button>
+                        <button onClick={() => reset()} className="btn btn-secondary" variant="secondary">Reset</button>
+                        <button disabled={isSubmitting} className="btn btn-primary ms-2" type="submit" variant="primary">Save</button>
                     </div>
                 </form>
             </div>
