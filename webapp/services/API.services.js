@@ -16,8 +16,8 @@ const getUserApi = (id) => {
     return axios.get(`api/users/${id}`)
 }
 
-const getListUserApi = (page) => {
-    return axios.get(`api/users?page=${page}`)
+const getListUserApi = (page, search = '', sortEmail = 'desc') => {
+    return axios.get(`api/users?page=${page}&search=${search}&sort=${sortEmail}`)
 }
 
 export { createUserApi, getListUserApi, editUserApi, getUserApi, deleteUserApi }

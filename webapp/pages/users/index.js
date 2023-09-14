@@ -12,16 +12,18 @@ const inter = Inter({ subsets: ['latin'] })
 export default function Index() {
     const [loaded, setLoaded] = useState(false);
     const [users, setUsers] = useState([])
+    const [sortEmail, setSortEmail] = useState('desc')
     const [pageCount, setPageCount] = useState(1)
     const [currentPage, setCurrentPage] = useState(1)
     const userStatus = {1: 'Active', 2: 'Suspended', 3: 'Deleted'};
+    const [search, setSearch] = useState('')
 
     useEffect(() => {
         getListUserPagination()
     }, [])
 
     const getListUserPagination = async () => {
-        const res = await getListUserApi(currentPage)
+        const res = await getListUserApi(currentPage, search, sortEmail)
         setUsers(res.data)
         setPageCount(res.pagination.total_page)
         setLoaded(true)
@@ -29,6 +31,10 @@ export default function Index() {
 
     const handlePageClick = async (event) => {
         setCurrentPage(event.selected)
+        getListUserPagination()
+    }
+
+    const handleSearch = () => {
         getListUserPagination()
     }
 
@@ -47,6 +53,18 @@ export default function Index() {
         }
     }
 
+    const handleSortEmail = () => {
+        if (sortEmail === 'asc') {
+            setSortEmail('desc')
+        } else {
+            setSortEmail('asc')
+        }
+    }
+
+    useEffect(() => {
+        getListUserPagination()
+    }, [sortEmail])
+
   return (
     <>
       <Head>
@@ -58,13 +76,19 @@ export default function Index() {
       <main className="container">
         {loaded && (
             <>
-                <h2>Manager User</h2>
-                <div>
-                    <Link href="/users/create">
-                        <button className="btn mb-3 float-end btn-primary" variant="primary">
-                            Create user
-                        </button>
-                    </Link>
+                <div className="row mt-3">
+                    <div className="col-6"><h2>Manager User</h2></div>
+                    <div className="col-6">
+                        <Link href="/users/create">
+                            <button className="btn mb-3 float-end btn-primary" variant="primary">
+                                Create user
+                            </button>
+                        </Link>
+                    </div>
+                </div>
+                <div style={{ width: "300px"}} className="d-flex mb-3 ms-auto justify-content-end">
+                    <input className="form-control me-1" onChange={event => setSearch(event.target.value)} value={search} type="search" placeholder="Search" aria-label="Search" />
+                    <button className="btn btn-primary" onClick={handleSearch} type="button">Search</button>
                 </div>
                 <div className="manager-user">
                     <table className="table table-bordered table-hover">
@@ -73,7 +97,19 @@ export default function Index() {
                                 <th scope="col">#ID</th>
                                 <th scope="col">Last Name</th>
                                 <th scope="col">First Email</th>
-                                <th scope="col">Email</th>
+                                <th scope="col">
+                                    <span onClick={handleSortEmail}>Email</span>
+                                    {console.log(sortEmail)}
+                                        {sortEmail === 'desc' ?
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-sort-down" viewBox="0 0 16 16">
+                                                <path d="M3.5 2.5a.5.5 0 0 0-1 0v8.793l-1.146-1.147a.5.5 0 0 0-.708.708l2 1.999.007.007a.497.497 0 0 0 .7-.006l2-2a.5.5 0 0 0-.707-.708L3.5 11.293V2.5zm3.5 1a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5zM7.5 6a.5.5 0 0 0 0 1h5a.5.5 0 0 0 0-1h-5zm0 3a.5.5 0 0 0 0 1h3a.5.5 0 0 0 0-1h-3zm0 3a.5.5 0 0 0 0 1h1a.5.5 0 0 0 0-1h-1z"/>
+                                            </svg>
+                                            :
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-sort-up" viewBox="0 0 16 16">
+                                                <path d="M3.5 12.5a.5.5 0 0 1-1 0V3.707L1.354 4.854a.5.5 0 1 1-.708-.708l2-1.999.007-.007a.498.498 0 0 1 .7.006l2 2a.5.5 0 1 1-.707.708L3.5 3.707V12.5zm3.5-9a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5zM7.5 6a.5.5 0 0 0 0 1h5a.5.5 0 0 0 0-1h-5zm0 3a.5.5 0 0 0 0 1h3a.5.5 0 0 0 0-1h-3zm0 3a.5.5 0 0 0 0 1h1a.5.5 0 0 0 0-1h-1z"/>
+                                            </svg>
+                                        }
+                                </th>
                                 <th scope="col">Status</th>
                                 <th scope="col">Action</th>
                             </tr>
