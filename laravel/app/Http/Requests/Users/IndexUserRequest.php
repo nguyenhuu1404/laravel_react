@@ -22,7 +22,7 @@ class IndexUserRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'q' => 'nullable|string|max:255',
+            'search' => 'nullable|string|max:255',
         ];
     }
 }

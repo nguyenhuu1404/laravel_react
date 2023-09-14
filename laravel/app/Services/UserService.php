@@ -18,7 +18,10 @@ class UserService implements UserServiceInterface
 
     public function index(IndexUserRequest $request)
     {
-        return $this->userRepository->paginate();
+        return $this->userRepository->when($request->search, function($q) use ($request) {
+            $q->where('email', 'like', '%'.$request->search.'%');
+        })->orderBy('email', $request->sort)
+        ->paginate();
     }
 
     public function show(int $id)
